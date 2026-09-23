@@ -16,10 +16,10 @@
     "template:build": "opencomputer template build . --output /tmp/opencomputer-linear-ops-template.json"
   },
   "dependencies": {
-    "@opencomputer/agent": "0.7.4"
+    "@opencomputer/agent": "0.7.5"
   },
   "devDependencies": {
-    "@opencomputer/cli": "^0.7.8",
+    "@opencomputer/cli": "^0.7.9",
     "@types/node": "^24.0.0",
     "typescript": "^5.9.0"
   },

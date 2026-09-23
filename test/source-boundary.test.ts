@@ -10,6 +10,53 @@ const authoredFiles = [
   "opencomputer/agents/report-delivery/agent.ts",
 ].map((path) => readFileSync(path, "utf8"));
 
+const scheduleFiles = new Map(
+  ([
+    [
+      "issue-groomer",
+      "opencomputer/agents/issue-groomer/schedules/sync-and-groom.ts",
+    ],
+    [
+      "scope-planner",
+      "opencomputer/agents/scope-planner/schedules/plan-pending-scope.ts",
+    ],
+    [
+      "status-reporter",
+      "opencomputer/agents/status-reporter/schedules/prepare-daily-status.ts",
+    ],
+    [
+      "report-delivery",
+      "opencomputer/agents/report-delivery/schedules/deliver-pending-email.ts",
+    ],
+  ] as const).map(([agent, path]) => [agent, readFileSync(path, "utf8")]),
+);
+
+test("each agent owns its intended production schedule", () => {
+  assert.equal(scheduleFiles.size, 4);
+
+  const groomer = scheduleFiles.get("issue-groomer")!;
+  assert.match(groomer, /id:\s*"sync-and-groom"/);
+  assert.match(groomer, /cron:\s*"\*\/5 \* \* \* \*"/);
+
+  const planner = scheduleFiles.get("scope-planner")!;
+  assert.match(planner, /id:\s*"plan-pending-scope"/);
+  assert.match(planner, /cron:\s*"2-59\/5 \* \* \* \*"/);
+
+  const reporter = scheduleFiles.get("status-reporter")!;
+  assert.match(reporter, /id:\s*"prepare-daily-status"/);
+  assert.match(reporter, /cron:\s*"9 9 \* \* 1-5"/);
+
+  const delivery = scheduleFiles.get("report-delivery")!;
+  assert.match(delivery, /id:\s*"deliver-pending-email"/);
+  assert.match(delivery, /cron:\s*"\*\/2 \* \* \* \*"/);
+
+  for (const source of scheduleFiles.values()) {
+    assert.match(source, /timezone:\s*"UTC"/);
+    assert.match(source, /enabled:\s*\["production"\]/);
+    assert.match(source, /overlap:\s*"skip"/);
+  }
+});
+
 test("the proof has no code-defined channel or outbox resources", () => {
   const source = authoredFiles.join("\n");
   for (const forbidden of [
