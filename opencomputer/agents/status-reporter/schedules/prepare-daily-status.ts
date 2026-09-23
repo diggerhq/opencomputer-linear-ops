@@ -2,7 +2,7 @@ import { defineSchedule } from "@opencomputer/agent";
 
 export default defineSchedule({
   id: "prepare-daily-status",
-  cron: "0 9 * * 1-5",
+  cron: "9 9 * * 1-5",
   timezone: "UTC",
   enabled: ["production"],
   overlap: "skip",

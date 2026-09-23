@@ -2,7 +2,7 @@ import { defineSchedule } from "@opencomputer/agent";
 
 export default defineSchedule({
   id: "plan-pending-scope",
-  cron: "*/5 * * * *",
+  cron: "2-59/5 * * * *",
   timezone: "UTC",
   enabled: ["production"],
   overlap: "skip",

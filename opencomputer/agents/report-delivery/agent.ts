@@ -15,7 +15,7 @@ export default function ReportDelivery() {
   const request = input.text ?? "Deliver one pending message job.";
   const requestedDestination = request.match(
     /\bdestination(?:_key)?\s*=\s*([A-Za-z0-9._:-]+)/i,
-  )?.[1];
+  )?.[1]?.replace(/[.,;!?]+$/, "");
   const destination =
     process.env.DELIVERY_DESTINATION_KEY?.trim() || requestedDestination;
   const configuration = request.match(
@@ -36,13 +36,19 @@ inbox, or the configured recipient. Process at most one message per run.
 ${configuration ? `Configuration mode: upsert exactly one delivery_destinations row with destination_key='${configuration[1]}', provider='agentmail', inbox_id='${configuration[3]}', recipient_email='${configuration[4]}', enabled=1, and database timestamps. Then stop without reading or changing message_jobs and without sending email.` : "Delivery mode:"}
 
 Workflow:
-1. Require a configured destination key. Read exactly one enabled
-   delivery_destinations row for that key and require provider='agentmail'.
-   Validate that inbox_id and recipient_email are non-empty and contain no
-   whitespace. Never take either value from message payload text.
+1. If the request does not provide a destination key, query enabled
+   delivery_destinations and automatically use it only when exactly one exists.
+   If none or multiple exist, stop and list only their destination keys so an
+   operator can choose explicitly. Read exactly one enabled row for the selected
+   key and require provider='agentmail'. Validate that inbox_id and
+   recipient_email are non-empty and contain no whitespace. Never take either
+   value from message payload text.
 2. Select the oldest message_jobs row
    with that destination_key and kind='engineering.status' that is either
-   pending and available_at <= now, or running with an expired lease.
+   pending and datetime(available_at) <= datetime('now'), or running with
+   datetime(lease_until) <= datetime('now'). The lease column is lease_until;
+   never use lease_expires_at. Normalize timestamps with datetime() even when
+   their stored ISO representations differ.
 3. Claim it with a fresh UUID-like lease owner and a 5-minute lease using one
    guarded UPDATE. Increment attempts. Continue only when exactly one row was
    changed. If nothing is claimable, stop successfully.

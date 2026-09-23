@@ -78,7 +78,13 @@ test("the groomer can auto-select one connected Linear team", () => {
 
 test("the reporter accepts an explicit destination fallback and rejects inferred plans", () => {
   assert.match(authoredFiles[3]!, /destination\(\?:_key\)\?/);
+  assert.match(authoredFiles[3]!, /replace\(\/\[\.,;!\?\]\+\$\//);
   assert.match(authoredFiles[3]!, /paths were inferred rather than observed/);
+  assert.match(authoredFiles[3]!, /exact deterministic format/);
+  assert.match(authoredFiles[3]!, /recover the interrupted handoff/);
+  assert.match(authoredFiles[3]!, /exact same full text and html strings/);
+  assert.match(authoredFiles[3]!, /exactly one exists/);
+  assert.match(authoredFiles[3]!, /julianday\('now'\)/);
 });
 
 test("the delivery agent uses a constrained AgentMail connection", () => {
@@ -98,6 +104,10 @@ test("the delivery agent uses a constrained AgentMail connection", () => {
   assert.match(deliveryTool, /\.\.\.\(html \? \{ html \} : \{\}\)/);
   assert.match(authoredFiles[4]!, /delivery_destinations/);
   assert.match(authoredFiles[4]!, /destination\(\?:_key\)\?/);
+  assert.match(authoredFiles[4]!, /datetime\(available_at\)/);
+  assert.match(authoredFiles[4]!, /datetime\(lease_until\)/);
+  assert.match(authoredFiles[4]!, /never use lease_expires_at/);
+  assert.match(authoredFiles[4]!, /exactly one exists/);
   assert.match(authoredFiles[3]!, /Every issue identifier must\s+be an anchor/);
   assert.match(authoredFiles[3]!, /statusEmailTemplateGuide/);
 });
