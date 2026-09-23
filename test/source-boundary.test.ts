@@ -93,8 +93,8 @@ test("the delivery agent uses a constrained AgentMail connection", () => {
   assert.match(deliveryTool, /pathPrefix:\s*"\/v0\/inboxes\/"/);
   assert.match(deliveryTool, /useSecret\("AGENTMAIL_API_KEY"\)/);
   assert.match(deliveryTool, /"Idempotency-Key": idempotencyKey/);
-  assert.match(
-    deliveryTool,
-    /requiredRuntimeVariable\("DELIVERY_RECIPIENT_EMAIL"\)/,
-  );
+  assert.doesNotMatch(deliveryTool, /DELIVERY_RECIPIENT_EMAIL/);
+  assert.doesNotMatch(deliveryTool, /AGENTMAIL_INBOX_ID/);
+  assert.match(authoredFiles[4]!, /delivery_destinations/);
+  assert.match(authoredFiles[4]!, /destination\(\?:_key\)\?/);
 });

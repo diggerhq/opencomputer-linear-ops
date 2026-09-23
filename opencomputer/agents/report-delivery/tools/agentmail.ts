@@ -23,12 +23,6 @@ interface AgentMailSendResponse {
   thread_id?: unknown;
 }
 
-function requiredRuntimeVariable(name: string): string {
-  const value = process.env[name]?.trim();
-  if (!value) throw new Error(`${name} is not configured`);
-  return value;
-}
-
 function requiredInputString(value: unknown, name: string): string {
   if (typeof value !== "string" || !value) {
     throw new Error(`${name} is required`);
@@ -47,6 +41,18 @@ export const sendEmail = defineTool({
   input: {
     type: "object",
     properties: {
+      inboxId: {
+        type: "string",
+        minLength: 3,
+        maxLength: 320,
+        pattern: "^[^\\s]+$",
+      },
+      recipient: {
+        type: "string",
+        minLength: 3,
+        maxLength: 320,
+        pattern: "^[^\\s@]+@[^\\s@]+$",
+      },
       subject: { type: "string", minLength: 1, maxLength: 200 },
       text: { type: "string", minLength: 1, maxLength: 100000 },
       idempotencyKey: {
@@ -56,12 +62,12 @@ export const sendEmail = defineTool({
         pattern: "^[A-Za-z0-9._~-]+$",
       },
     },
-    required: ["subject", "text", "idempotencyKey"],
+    required: ["inboxId", "recipient", "subject", "text", "idempotencyKey"],
     additionalProperties: false,
   },
   async run({ input, signal }) {
-    const inboxId = requiredRuntimeVariable("AGENTMAIL_INBOX_ID");
-    const recipient = requiredRuntimeVariable("DELIVERY_RECIPIENT_EMAIL");
+    const inboxId = requiredInputString(input.inboxId, "inboxId");
+    const recipient = requiredInputString(input.recipient, "recipient");
     const subject = requiredInputString(input.subject, "subject");
     const text = requiredInputString(input.text, "text");
     const idempotencyKey = requiredInputString(

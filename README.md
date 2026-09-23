@@ -44,10 +44,19 @@ opencomputer connection add linear
   OpenComputer GitHub App installation;
 - `REPORT_DESTINATION_KEY`: an operational name such as `engineering-triage`;
 - `REPORT_TIMEZONE`, `STALE_AFTER_DAYS`, and `RECENTLY_COMPLETED_DAYS`.
-- `AGENTMAIL_INBOX_ID`: the AgentMail inbox ID or address used to send;
-- `DELIVERY_RECIPIENT_EMAIL`: the fixed report recipient; and
-- `DELIVERY_DESTINATION_KEY`: the `message_jobs.destination_key` claimed by
-  this delivery agent.
+
+Delivery destinations are data, not runtime code or deployment variables.
+Configure one after deployment by sending the report-delivery agent an explicit
+administrative request:
+
+```bash
+opencomputer session \
+  "Configure destination=engineering-triage provider=agentmail inbox=engineering-status@agentmail.to recipient=engineering@example.com" \
+  --agent <project-agent>--report-delivery
+```
+
+This upserts one `delivery_destinations` row and sends no email. Pending
+`message_jobs` select that record through their `destination_key`.
 
 Upload the AgentMail credential as a write-only Development secret:
 
@@ -55,10 +64,11 @@ Upload the AgentMail credential as a write-only Development secret:
 printf %s "$AGENTMAIL_API_KEY" | opencomputer secrets set AGENTMAIL_API_KEY --value-stdin --environment development --agent <project-agent>--report-delivery
 ```
 
-The delivery tool can only POST to AgentMail's inbox send endpoint. The model
-cannot choose a recipient or read the API key. Retries reuse the message job ID
-as AgentMail's `Idempotency-Key`, preventing duplicate sends within the
-provider's idempotency window.
+The delivery tool can only POST to AgentMail's inbox send endpoint. The API key
+never enters the model; inbox and recipient must come from the enabled database
+record matching the claimed job. Retries reuse the message job ID as
+AgentMail's `Idempotency-Key`, preventing duplicate sends within the provider's
+idempotency window.
 
 The issue groomer declares `useService("linear")` and sends GraphQL requests
 through the connected service. Linear credentials remain in OpenComputer's

@@ -1,17 +1,19 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import test from "node:test";
 import { DatabaseSync } from "node:sqlite";
 
-const migrationPath =
-  "opencomputer/database/migrations/001_initial.sql";
+const migrationDirectory = "opencomputer/database/migrations";
 
 function migratedDatabase(): DatabaseSync {
   const database = new DatabaseSync(":memory:");
   database.exec("PRAGMA foreign_keys = ON");
-  const migration = readFileSync(migrationPath, "utf8");
-  for (const statement of migration.split(/\n\s*-- migrate:split\s*\n/g)) {
-    if (statement.trim()) database.exec(statement);
+  for (const name of readdirSync(migrationDirectory).sort()) {
+    if (!name.endsWith(".sql")) continue;
+    const migration = readFileSync(`${migrationDirectory}/${name}`, "utf8");
+    for (const statement of migration.split(/\n\s*-- migrate:split\s*\n/g)) {
+      if (statement.trim()) database.exec(statement);
+    }
   }
   return database;
 }
@@ -60,6 +62,7 @@ test("migration creates the coordination schema", () => {
     .all()
     .map((row) => String(row.name));
   assert.deepEqual(tables, [
+    "delivery_destinations",
     "issue_analyses",
     "issue_snapshots",
     "linear_sync_runs",
@@ -70,6 +73,36 @@ test("migration creates the coordination schema", () => {
     "sync_checkpoints",
     "team_repositories",
   ]);
+});
+
+test("delivery destinations are database-defined and keyed independently", () => {
+  const database = migratedDatabase();
+  database
+    .prepare(
+      `INSERT INTO delivery_destinations
+       (destination_key, provider, inbox_id, recipient_email, enabled,
+        created_at, updated_at)
+       VALUES (?, 'agentmail', ?, ?, 1, ?, ?)`,
+    )
+    .run(
+      "engineering-status",
+      "reporter-agent@agentmail.to",
+      "engineering@example.com",
+      "2026-09-23T17:00:00Z",
+      "2026-09-23T17:00:00Z",
+    );
+  const stored = database
+    .prepare(
+      `SELECT provider, inbox_id, recipient_email, enabled
+       FROM delivery_destinations WHERE destination_key = ?`,
+    )
+    .get("engineering-status");
+  assert.deepEqual({ ...stored }, {
+    provider: "agentmail",
+    inbox_id: "reporter-agent@agentmail.to",
+    recipient_email: "engineering@example.com",
+    enabled: 1,
+  });
 });
 
 test("one issue revision produces one analysis and scope job", () => {
