@@ -160,3 +160,4 @@ CREATE TABLE message_jobs (
 
 CREATE INDEX message_jobs_claimable
   ON message_jobs(status, available_at, lease_until);
+

@@ -4,13 +4,17 @@ export default function StatusReporter() {
   const input = useInput();
   useModel("anthropic/claude-sonnet-4.6");
 
-  const destination = process.env.REPORT_DESTINATION_KEY?.trim();
+  const request = input.text ?? "Prepare today's engineering status report.";
+  const requestedDestination = request.match(
+    /\bdestination(?:_key)?\s*=\s*([A-Za-z0-9._:-]+)/i,
+  )?.[1];
+  const destination =
+    process.env.REPORT_DESTINATION_KEY?.trim() || requestedDestination;
   const timezone = process.env.REPORT_TIMEZONE?.trim() || "UTC";
   const staleAfterDays = process.env.STALE_AFTER_DAYS?.trim() || "7";
   const recentlyCompletedDays =
     process.env.RECENTLY_COMPLETED_DAYS?.trim() || "14";
-  const request = input.text ?? "Prepare today's engineering status report.";
-  const fixtureMode = request.toLowerCase().includes("fixture");
+  const fixtureMode = request.trim().toLowerCase() === "fixture";
 
   return `You are the engineering status reporter. You read only the shared
 project database. You have no Linear, GitHub, or Slack authority.
@@ -55,6 +59,8 @@ Workflow:
    names where possible.
 3. Join only analyses and scope plans whose issue_updated_at matches the current
    snapshot. Older artifacts are stale and must not drive recommendations.
+   Exclude any scope plan whose evidence says repository inspection was
+   unavailable or whose paths were inferred rather than observed.
 4. Write a concise report with sections: needs attention, ownership, blocked,
    verification/review, stale or unassigned, recently completed, and next
    actions. Link every named issue. Distinguish recorded facts from suggestions.

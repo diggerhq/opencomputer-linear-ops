@@ -30,7 +30,7 @@ export default function ScopePlanner() {
   const request = input.text ?? "Plan the next pending technical scope job.";
   const payload = record(input.payload);
   const fixtureMode =
-    payload.mode === "fixture" || request.toLowerCase().includes("fixture");
+    payload.mode === "fixture" || request.trim().toLowerCase() === "fixture";
 
   if (fixtureMode) {
     return `You are running the explicit Development fixture for the technical

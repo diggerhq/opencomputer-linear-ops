@@ -2,7 +2,7 @@ schema = 1
 
 [template]
 name = "Linear Engineering Operations"
-description = "Groom Linear issues, plan code-informed scope, and prepare a daily engineering status report."
+description = "Groom Linear issues, plan code-informed scope, prepare a daily engineering status report, and deliver it through AgentMail."
 default_project_name = "linear-engineering-ops"
 
 [template.first_run]
@@ -38,6 +38,24 @@ example = "7"
 description = "Completed-work lookback used by reports and overlap checks."
 required = false
 example = "14"
+
+[template.secrets.AGENTMAIL_API_KEY]
+description = "AgentMail API key used only by the report-delivery agent's constrained outbound connection."
+
+[template.runtime_variables.AGENTMAIL_INBOX_ID]
+description = "AgentMail inbox ID or address used as the sender."
+required = true
+example = "engineering-status@agentmail.to"
+
+[template.runtime_variables.DELIVERY_RECIPIENT_EMAIL]
+description = "Email address that receives engineering status reports."
+required = true
+example = "engineering@example.com"
+
+[template.runtime_variables.DELIVERY_DESTINATION_KEY]
+description = "Destination key that the report-delivery agent claims from message_jobs."
+required = true
+example = "engineering-status"
 
 [template.connections.github]
 description = "Optional read-only GitHub installation for technical scope planning."

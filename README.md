@@ -1,6 +1,6 @@
 # Linear engineering operations agents
 
-This OpenComputer template installs three independently scheduled agents that
+This OpenComputer template installs four independently scheduled agents that
 coordinate through one managed database:
 
 - **Issue groomer** incrementally reads Linear, stores issue snapshots,
@@ -8,11 +8,13 @@ coordinate through one managed database:
 - **Scope planner** claims queued work, inspects an attached GitHub repository,
   and stores an evidence-backed implementation plan.
 - **Status reporter** reads shared state, creates a daily engineering brief,
-  and writes a pending message record for a separate delivery worker.
+  and writes a channel-neutral pending message record.
+- **Report delivery** claims one pending message at a time and sends it through
+  a constrained AgentMail connection with an idempotency key.
 
-The proof intentionally does not send Slack messages and never mutates Linear
-or GitHub. A later delivery action can consume `message_jobs` without changing
-the agents or database contract.
+The proof intentionally does not depend on Slack and never mutates Linear or
+GitHub. AgentMail is a replaceable delivery adapter behind the `message_jobs`
+contract.
 
 ## Verify locally
 
@@ -42,6 +44,21 @@ opencomputer connection add linear
   OpenComputer GitHub App installation;
 - `REPORT_DESTINATION_KEY`: an operational name such as `engineering-triage`;
 - `REPORT_TIMEZONE`, `STALE_AFTER_DAYS`, and `RECENTLY_COMPLETED_DAYS`.
+- `AGENTMAIL_INBOX_ID`: the AgentMail inbox ID or address used to send;
+- `DELIVERY_RECIPIENT_EMAIL`: the fixed report recipient; and
+- `DELIVERY_DESTINATION_KEY`: the `message_jobs.destination_key` claimed by
+  this delivery agent.
+
+Upload the AgentMail credential as a write-only Development secret:
+
+```bash
+printf %s "$AGENTMAIL_API_KEY" | opencomputer secrets set AGENTMAIL_API_KEY --value-stdin --environment development --agent <project-agent>--report-delivery
+```
+
+The delivery tool can only POST to AgentMail's inbox send endpoint. The model
+cannot choose a recipient or read the API key. Retries reuse the message job ID
+as AgentMail's `Idempotency-Key`, preventing duplicate sends within the
+provider's idempotency window.
 
 The issue groomer declares `useService("linear")` and sends GraphQL requests
 through the connected service. Linear credentials remain in OpenComputer's
@@ -57,12 +74,15 @@ manual. Run them in order:
 
 1. `sync-and-groom` on `issue-groomer`;
 2. `plan-pending-scope` on `scope-planner`; and
-3. `prepare-daily-status` on `status-reporter`.
+3. `prepare-daily-status` on `status-reporter`; and
+4. after reviewing the pending email, `deliver-pending-email` on
+   `report-delivery`.
 
 Then inspect the project database. A successful proof has current
 `issue_snapshots`, revision-keyed `issue_analyses`, zero or more `scope_plans`,
-one immutable `reports` row, and one `message_jobs` row whose status is
-`pending`. Running the same inputs again must not duplicate any of them.
+one immutable `reports` row, and one `message_jobs` row whose status moves from
+`pending` to `delivered` with a provider message ID. Running the same inputs
+again must not duplicate any of them or send a second email.
 
 Do not promote to Production until the Development proof has been reviewed.
 

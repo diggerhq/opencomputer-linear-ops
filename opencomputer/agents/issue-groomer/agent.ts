@@ -20,7 +20,7 @@ export default function IssueGroomer() {
   const request = input.text ?? "Synchronize and groom recently changed Linear issues.";
   const payload = record(input.payload);
   const fixtureMode =
-    payload.mode === "fixture" || request.toLowerCase().includes("fixture");
+    payload.mode === "fixture" || request.trim().toLowerCase() === "fixture";
 
   if (fixtureMode) {
     return `You are running the explicit Development fixture for the Linear
@@ -80,8 +80,10 @@ Database tables:
   lease_until, attempts, created_at, updated_at, last_error)
 
 Workflow:
-1. If the team ID is missing, call linear_list_teams, report the available
-   team names, keys, and IDs, explain that LINEAR_TEAM_ID must be set, and stop.
+1. If the team ID is missing, call linear_list_teams. If exactly one team is
+   available, use it for this run. If none or multiple teams are available,
+   report their names, keys, and IDs, explain that LINEAR_TEAM_ID must be set,
+   and stop.
 2. Read the checkpoint for source='linear' and this team. With no checkpoint,
    use 30 days ago. Insert a running sync row with a UUID-like ID.
 3. Call linear_list_updated_issues. If it fails, mark the sync failed and do

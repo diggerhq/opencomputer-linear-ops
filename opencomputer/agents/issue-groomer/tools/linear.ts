@@ -209,7 +209,7 @@ export const listUpdatedIssues = defineTool({
     type: "object",
     properties: {
       teamId: { type: "string", minLength: 1, maxLength: 128 },
-      updatedAfter: { type: "string", minLength: 20, maxLength: 40 },
+      updatedAfter: { type: "string", minLength: 3, maxLength: 40 },
       limit: { type: "integer", minimum: 1, maximum: 50 },
     },
     required: ["teamId", "updatedAfter", "limit"],
@@ -219,7 +219,7 @@ export const listUpdatedIssues = defineTool({
     const data = await graphql<{
       issues?: { nodes?: unknown[]; pageInfo?: { hasNextPage?: boolean } };
     }>(
-      `query UpdatedIssues($teamId: ID!, $updatedAfter: DateTime!, $limit: Int!) {
+      `query UpdatedIssues($teamId: ID!, $updatedAfter: DateTimeOrDuration!, $limit: Int!) {
         issues(
           first: $limit
           orderBy: updatedAt
