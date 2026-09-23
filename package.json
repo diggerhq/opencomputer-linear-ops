@@ -1,0 +1,29 @@
+{
+  "name": "opencomputer-example-linear-ops",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "opencomputer": "opencomputer",
+    "deploy": "opencomputer deploy --alias development",
+    "deploy:watch": "opencomputer deploy --alias development --watch",
+    "session": "opencomputer session",
+    "typecheck": "tsc --noEmit",
+    "build:test": "tsc -p tsconfig.test.json",
+    "test": "npm run build:test && node --test dist-test/test/*.test.js",
+    "doctor": "opencomputer doctor",
+    "template:validate": "opencomputer template validate .",
+    "template:build": "opencomputer template build . --output /tmp/opencomputer-linear-ops-template.json"
+  },
+  "dependencies": {
+    "@opencomputer/agent": "0.7.4"
+  },
+  "devDependencies": {
+    "@opencomputer/cli": "^0.7.8",
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

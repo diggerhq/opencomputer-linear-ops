@@ -1,0 +1,4 @@
+node_modules/
+dist-test/
+opencomputer/.env.local
+.opencomputer/

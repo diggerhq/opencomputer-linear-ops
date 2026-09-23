@@ -1,0 +1,46 @@
+schema = 1
+
+[template]
+name = "Linear Engineering Operations"
+description = "Groom Linear issues, plan code-informed scope, and prepare a daily engineering status report."
+default_project_name = "linear-engineering-ops"
+
+[template.first_run]
+agent = "issue-groomer"
+prompt = "Synchronize the configured Linear team, groom at most three current issues, and show what was stored. Do not mutate Linear or GitHub."
+
+[template.runtime_variables.LINEAR_TEAM_ID]
+description = "Linear team UUID to synchronize."
+required = true
+example = "72b2a2dc-6f4f-4423-9d34-24b5bd10634a"
+
+[template.runtime_variables.GITHUB_REPOSITORY]
+description = "Optional owner/repository used for code-informed scope plans."
+required = false
+example = "acme/service"
+
+[template.runtime_variables.REPORT_DESTINATION_KEY]
+description = "Operational destination name recorded on pending message jobs."
+required = true
+example = "engineering-triage"
+
+[template.runtime_variables.REPORT_TIMEZONE]
+description = "IANA timezone used to label the daily report."
+required = true
+example = "America/Los_Angeles"
+
+[template.runtime_variables.STALE_AFTER_DAYS]
+description = "Age after which an active issue is called stale."
+required = false
+example = "7"
+
+[template.runtime_variables.RECENTLY_COMPLETED_DAYS]
+description = "Completed-work lookback used by reports and overlap checks."
+required = false
+example = "14"
+
+[template.connections.github]
+description = "Optional read-only GitHub installation for technical scope planning."
+
+[template.connections.linear]
+description = "Required Linear account used for read-only issue synchronization."
