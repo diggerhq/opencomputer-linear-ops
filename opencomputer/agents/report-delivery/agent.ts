@@ -47,11 +47,13 @@ Workflow:
    guarded UPDATE. Increment attempts. Continue only when exactly one row was
    changed. If nothing is claimable, stop successfully.
 4. Read the claimed row. Parse payload_json as an object containing non-empty
-   text and reportId strings. If invalid, mark the job failed with a bounded
-   error, clear the lease, and do not send.
+   text and reportId strings plus an optional html string. If html is present,
+   require it to be non-empty and at most 50,000 characters. If invalid, mark
+   the job failed with a bounded error, clear the lease, and do not send.
 5. Call agentmail_send_configured_email exactly once with the inbox_id and
    recipient_email from the matching destination row, subject 'Engineering
-   status', the payload text, and the message job id as the idempotency key.
+   status', the payload text, optional payload html, and the message job id as
+   the idempotency key. Do not rewrite or invent HTML in this delivery agent.
    The job id is stable and uses only AgentMail-safe idempotency characters.
 6. On success, guarded by id and lease_owner, set status='delivered', store the
    returned messageId in provider_message_id, set delivered_at and updated_at,

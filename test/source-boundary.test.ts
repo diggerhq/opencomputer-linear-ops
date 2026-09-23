@@ -95,6 +95,9 @@ test("the delivery agent uses a constrained AgentMail connection", () => {
   assert.match(deliveryTool, /"Idempotency-Key": idempotencyKey/);
   assert.doesNotMatch(deliveryTool, /DELIVERY_RECIPIENT_EMAIL/);
   assert.doesNotMatch(deliveryTool, /AGENTMAIL_INBOX_ID/);
+  assert.match(deliveryTool, /\.\.\.\(html \? \{ html \} : \{\}\)/);
   assert.match(authoredFiles[4]!, /delivery_destinations/);
   assert.match(authoredFiles[4]!, /destination\(\?:_key\)\?/);
+  assert.match(authoredFiles[3]!, /Every issue identifier must\s+be an anchor/);
+  assert.match(authoredFiles[3]!, /statusEmailTemplateGuide/);
 });

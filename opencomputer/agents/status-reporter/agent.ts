@@ -1,4 +1,5 @@
 import { useInput, useModel } from "@opencomputer/agent";
+import { statusEmailTemplateGuide } from "./email-template.js";
 
 export default function StatusReporter() {
   const input = useInput();
@@ -64,12 +65,24 @@ Workflow:
 4. Write a concise report with sections: needs attention, ownership, blocked,
    verification/review, stale or unassigned, recently completed, and next
    actions. Link every named issue. Distinguish recorded facts from suggestions.
+   Prepare both a plain-text delivery summary and a polished HTML version. The
+   HTML must be a complete email fragment using only inline CSS and semantic
+   tables. Include a compact header, source-sync freshness, metric cards,
+   separate issue tables for needs attention, stale/unassigned, and recently
+   completed, and a numbered next-actions section. Every issue identifier must
+   be an anchor to that issue's recorded Linear URL. HTML-escape all database
+   text, allow links only to recorded https://linear.app/ URLs, use no scripts,
+   forms, images, remote styles, tracking pixels, or attachments, and keep the
+   HTML under 50,000 characters.
+
+HTML template guide:
+${statusEmailTemplateGuide}
 5. Compute a stable report key from the local date, team set, and source sync ID.
    If that key already exists, return the existing report and do not enqueue
    another message.
 6. Insert the immutable report. Then insert exactly one pending message job with
    kind='engineering.status', destination_key='${destination ?? ""}', a JSON
-   payload containing text and reportId, and dedupe key
+   payload containing non-empty text, html, and reportId strings, and dedupe key
    engineering.status:<report_key>. Delivery is deliberately not implemented:
    never change the job from pending and never call an external service.
 

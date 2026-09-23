@@ -68,7 +68,11 @@ The delivery tool can only POST to AgentMail's inbox send endpoint. The API key
 never enters the model; inbox and recipient must come from the enabled database
 record matching the claimed job. Retries reuse the message job ID as
 AgentMail's `Idempotency-Key`, preventing duplicate sends within the provider's
-idempotency window.
+idempotency window. Status jobs contain a styled HTML report with inline CSS,
+linked Linear issue tables, and a plain-text fallback; the delivery agent sends
+both representations without rewriting either one. The reporter follows the
+checked-in `email-template.ts` reference so typography, metric cards, status
+colors, tables, and link placement remain consistent across runs.
 
 The issue groomer declares `useService("linear")` and sends GraphQL requests
 through the connected service. Linear credentials remain in OpenComputer's

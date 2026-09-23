@@ -55,6 +55,7 @@ export const sendEmail = defineTool({
       },
       subject: { type: "string", minLength: 1, maxLength: 200 },
       text: { type: "string", minLength: 1, maxLength: 100000 },
+      html: { type: "string", minLength: 1, maxLength: 50000 },
       idempotencyKey: {
         type: "string",
         minLength: 1,
@@ -70,6 +71,10 @@ export const sendEmail = defineTool({
     const recipient = requiredInputString(input.recipient, "recipient");
     const subject = requiredInputString(input.subject, "subject");
     const text = requiredInputString(input.text, "text");
+    const html =
+      typeof input.html === "string" && input.html
+        ? input.html
+        : undefined;
     const idempotencyKey = requiredInputString(
       input.idempotencyKey,
       "idempotencyKey",
@@ -86,6 +91,7 @@ export const sendEmail = defineTool({
           to: [recipient],
           subject,
           text,
+          ...(html ? { html } : {}),
         }),
         ...(signal ? { signal } : {}),
       },
